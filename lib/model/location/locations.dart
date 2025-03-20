@@ -40,3 +40,10 @@ class Location {
     return name;
   }
 }
+
+// void main(){
+//   Location loc1 = Location(name: 'Paris', country: Country.france);
+//   Location loc2 = Location(name: 'Paris', country: Country.france);
+//   print(loc1 == loc2); // true
+// }
+// for testing if not use the compare it will compare the location of the memory not the object 
