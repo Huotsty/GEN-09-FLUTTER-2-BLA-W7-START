@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:week_3_blabla_project/ui/providers/async_value.dart';
 import 'package:week_3_blabla_project/ui/providers/ride_preferences_provider.dart';
+import 'package:week_3_blabla_project/ui/widgets/errors/bla_error_screen.dart';
 
 import '../../../model/ride/ride_pref.dart';
 import '../../../utils/animations_util.dart';
@@ -104,11 +106,18 @@ class RidePrefScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Watching the current preference
-    final currentPreference =
-        context.watch<RidesPreferencesProvider>().currentPreference;
+    // final currentPreference =
+    // context.watch<RidesPreferencesProvider>().currentPreference;
     // Watching the preferences history
-    final preferencesHistory =
-        context.watch<RidesPreferencesProvider>().preferencesHistory;
+    // final preferencesHistory =
+    //     context.watch<RidesPreferencesProvider>().preferencesHistory;
+    // final pastPreferences = provider.pastPreferences;
+
+    // Access provider data
+    final provider = context.watch<RidesPreferencesProvider>();
+    final currentPreference = provider.currentPreference;
+    final pastPreferences = provider.pastPreferences;
+    final preferencesHistory = provider.preferencesHistory;
     print("RidePrefScreen build");
     onRidePrefSelected(RidePreference preference) {
       // 1 - Update the current preference
@@ -119,64 +128,71 @@ class RidePrefScreen extends StatelessWidget {
           .push(AnimationUtils.createBottomToTopRoute(RidesScreen()));
     }
 
-    return Stack(
-      children: [
-        // 1 - Background  Image
-        BlaBackground(),
+    if (pastPreferences.state == AsyncValueState.loading) {
+      return BlaError(message: "Loading past preferences...");
+    } else if (pastPreferences.state == AsyncValueState.error) {
+      return BlaError(message: "Error loading past preferences...");
+    } else {
+      return Stack(
+        children: [
+          // 1 - Background  Image
+          BlaBackground(),
 
-        // 2 - Foreground content
-        Column(
-          children: [
-            SizedBox(height: BlaSpacings.m),
-            Text(
-              "Your pick of rides at low price",
-              style: BlaTextStyles.heading.copyWith(color: Colors.white),
-            ),
-            SizedBox(height: 100),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: BlaSpacings.xxl),
-              decoration: BoxDecoration(
-                color: Colors.white, // White background
-                borderRadius: BorderRadius.circular(16), // Rounded corners
+          // 2 - Foreground content
+          Column(
+            children: [
+              SizedBox(height: BlaSpacings.m),
+              Text(
+                "Your pick of rides at low price",
+                style: BlaTextStyles.heading.copyWith(color: Colors.white),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 2.1 Display the Form to input the ride preferences
-                  // Display the form to input the ride preferences
-                  RidePrefForm(
-                    initialPreference: currentPreference,
-                    onSubmit: (preference) {
-                      context
-                          .read<RidesPreferencesProvider>()
-                          .setCurrentPreference(preference);
-                      Navigator.of(context).push(
-                          AnimationUtils.createBottomToTopRoute(RidesScreen()));
-                    },
-                  ),
-                  SizedBox(height: BlaSpacings.m),
+              SizedBox(height: 100),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: BlaSpacings.xxl),
+                decoration: BoxDecoration(
+                  color: Colors.white, // White background
+                  borderRadius: BorderRadius.circular(16), // Rounded corners
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 2.1 Display the Form to input the ride preferences
+                    // Display the form to input the ride preferences
+                    RidePrefForm(
+                      initialPreference: currentPreference,
+                      onSubmit: (preference) {
+                        context
+                            .read<RidesPreferencesProvider>()
+                            .setCurrentPreference(preference);
+                        Navigator.of(context).push(
+                            AnimationUtils.createBottomToTopRoute(
+                                RidesScreen()));
+                      },
+                    ),
+                    SizedBox(height: BlaSpacings.m),
 
-                  // 2.2 Optionally display a list of past preferences
-                  SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: preferencesHistory.length,
-                      itemBuilder: (context, index) => RidePrefHistoryTile(
-                        ridePref: preferencesHistory[index],
-                        onPressed: () =>
-                            onRidePrefSelected(preferencesHistory[index]),
+                    // 2.2 Optionally display a list of past preferences
+                    SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: preferencesHistory.length,
+                        itemBuilder: (context, index) => RidePrefHistoryTile(
+                          ridePref: preferencesHistory[index],
+                          onPressed: () =>
+                              onRidePrefSelected(preferencesHistory[index]),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    );
+            ],
+          ),
+        ],
+      );
+    }
   }
 }
 
